@@ -55,7 +55,7 @@ SPI_HandleTypeDef hspi1;
 
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
-uint32_t defaultTaskBuffer[ 1024 ];
+uint32_t defaultTaskBuffer[ 2048 ];
 osStaticThreadDef_t defaultTaskControlBlock;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
@@ -436,15 +436,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint8_t musicData[1024*16];
-uint8_t backBuffer[1024*8];
 struct MP3Player player;
-
-void CodecDataCallback(struct Codec* codec, uint16_t* data)
-{
-    memcpy (data, backBuffer, sizeof (backBuffer));
-    osThreadFlagsSet(defaultTaskHandle, 2);
-}
 
 /* USER CODE END 4 */
 
@@ -480,7 +472,6 @@ void StartDefaultTask(void *argument)
   for(;;)
   {
       osThreadFlagsWait(2, osFlagsWaitAny, 60000);
-      MP3PlayerTick (&player);
   }
   /* USER CODE END 5 */
 }

@@ -93,22 +93,16 @@ Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_pipes.c \
 Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc.c \
 Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc_bot.c \
 Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Src/usbh_msc_scsi.c \
-Middlewares/Third_Party/libhelix/mp3dec.c \
-Middlewares/Third_Party/libhelix/mp3tabs.c \
-Middlewares/Third_Party/libhelix/real/ \
-Middlewares/Third_Party/libhelix/real/bitstream.c \
-Middlewares/Third_Party/libhelix/real/buffers.c \
-Middlewares/Third_Party/libhelix/real/dequant.c \
-Middlewares/Third_Party/libhelix/real/dct32.c \
-Middlewares/Third_Party/libhelix/real/dqchan.c \
-Middlewares/Third_Party/libhelix/real/huffman.c \
-Middlewares/Third_Party/libhelix/real/hufftabs.c \
-Middlewares/Third_Party/libhelix/real/imdct.c \
-Middlewares/Third_Party/libhelix/real/polyphase.c \
-Middlewares/Third_Party/libhelix/real/scalfact.c \
-Middlewares/Third_Party/libhelix/real/stproc.c \
-Middlewares/Third_Party/libhelix/real/subband.c \
-Middlewares/Third_Party/libhelix/real/trigtabs.c
+Middlewares/Third_Party/libmad/bit.c \
+Middlewares/Third_Party/libmad/decoder.c \
+Middlewares/Third_Party/libmad/fixed.c \
+Middlewares/Third_Party/libmad/frame.c \
+Middlewares/Third_Party/libmad/huffman.c \
+Middlewares/Third_Party/libmad/layer12.c \
+Middlewares/Third_Party/libmad/layer3.c \
+Middlewares/Third_Party/libmad/stream.c \
+Middlewares/Third_Party/libmad/synth.c \
+Middlewares/Third_Party/libmad/timer.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -159,7 +153,8 @@ C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DSTM32F407xx \
 -DARM \
--DARM7DI
+-DARM7DI \
+-DFPM_DEFAULT
 
 # AS includes
 AS_INCLUDES =  \
@@ -184,8 +179,7 @@ C_INCLUDES =  \
 -IDrivers/CMSIS/Include \
 -IDrivers/AudioCodec \
 -IDrivers/MP3 \
--IMiddlewares/Third_Party/libhelix/real/ \
--IMiddlewares/Third_Party/libhelix/pub/
+-IMiddlewares/Third_Party/libmad
 
 
 # compile gcc flags

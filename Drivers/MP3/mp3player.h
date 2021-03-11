@@ -1,16 +1,17 @@
 #include <stdint.h>
-#include "mp3dec.h"
 #include "ff.h"
 #include "codec.h"
 #include "cmsis_os.h"
+#include "mad.h"
 
 #define FILE_BUFFER_SIZE (1024*8)
-#define MP3_BUFFER_SIZE (MAX_NCHAN * MAX_NGRAN * MAX_NSAMP)
+#define MP3_BUFFER_SIZE (2*1152)
+#define MP3_FRAME_SIZE 2881
 #define CODEC_BUFFER_SIZE (MP3_BUFFER_SIZE*2)
 
 struct MP3Player {
-    HMP3Decoder decoder;
     FIL currentFile;
+    struct mad_decoder decoder;
     int32_t position;
     struct Codec *codec;
     uint8_t fileData[FILE_BUFFER_SIZE];

@@ -8,6 +8,7 @@ bool CS43L22_Init (struct Codec* codec)
 {
     codec->SetVolume = CS43L22_SetVolume;
     codec->Transmit = CS43L22_Transmit;
+    codec->StopTransmit = CS43L22_StopTransmit;
 
     HAL_GPIO_WritePin (Audio_RST_GPIO_Port, Audio_RST_Pin, GPIO_PIN_SET);
     _WriteReg (codec, 0x02, 0x01);
@@ -15,7 +16,7 @@ bool CS43L22_Init (struct Codec* codec)
     _WriteReg (codec, 0x05, 0x81);
     _WriteReg (codec, 0x06, 0x04);
 
-    CS43L22_SetVolume (codec, 100);
+    CS43L22_SetVolume (codec, 150);
 
     _WriteReg (codec, 0x02, 0x9E);
     _WriteReg (codec, 0x0A, 0x00);
@@ -47,6 +48,13 @@ void CS43L22_Transmit (struct Codec* codec, uint16_t* data, uint16_t len)
     codec->data = data;
     codec->dataLen = len;
     HAL_I2S_Transmit_DMA(codec->i2s, codec->data, codec->dataLen);
+}
+
+void CS43L22_StopTransmit (struct Codec* codec)
+{
+    HAL_I2S_DMAStop(codec->i2s);
+    codec->data = NULL;
+    codec->dataLen = 0;
 }
 
 static void _WriteReg (struct Codec* codec, uint8_t reg, uint8_t value)
