@@ -43,8 +43,14 @@ void CS43L22_SetVolume (struct Codec* codec, uint8_t volume)
   }
 }
 
-void CS43L22_Transmit (struct Codec* codec, uint16_t* data, uint16_t len)
+void CS43L22_Transmit (struct Codec* codec, uint16_t* data, uint16_t len, unsigned int freq)
 {
+    if (codec->i2s->Init.AudioFreq != freq)
+    {
+        HAL_I2S_DeInit(codec->i2s);
+        codec->i2s->Init.AudioFreq = freq;
+        HAL_I2S_Init(codec->i2s);
+    }
     codec->data = data;
     codec->dataLen = len;
     HAL_I2S_Transmit_DMA(codec->i2s, codec->data, codec->dataLen);

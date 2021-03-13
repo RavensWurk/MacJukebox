@@ -3,8 +3,11 @@
 #include <stdio.h>
 
 #include "mp3player.h"
+#include "FreeRTOS.h"
 
 static struct MP3Player* currentPlayer;
+
+static void PlayFile(struct MP3Player* player, const char* fileName);
 
 static void MP3DataCallback(struct Codec* codec, uint16_t* data)
 {
@@ -106,6 +109,12 @@ static enum mad_flow MP3DataOutput(void *data, struct mad_header const *header,
         player->codecBackBuffer[codecPos++] = scale(pcm->samples[1][i]);
     }
 
+    if (!player->startedPlaying)
+    {
+        player->codec->Transmit(player->codec, player->codecBuffer, CODEC_BUFFER_SIZE, header->samplerate);
+        player->startedPlaying = true;
+    }
+
     osThreadFlagsWait(2, osFlagsWaitAny, 60000);
 
     return MAD_FLOW_CONTINUE;
@@ -117,6 +126,28 @@ static enum mad_flow MP3DataError(void *data, struct mad_stream *stream,
     return MAD_FLOW_CONTINUE;
 }
 
+static void MP3PlayerTask(void* arg)
+{
+    struct MP3Player *player = (struct MP3Player*)arg;
+    while (true)
+    {
+        struct MP3Command command = {0};
+
+        osMessageQueueGet(player->commandQueue, &command, NULL, 0);
+
+        switch (command.type)
+        {
+            case MP3_PLAY_FILE:
+                {
+                    struct MP3FilePlayCommand *playCommand = (struct MP3FilePlayCommand*)&command.data;
+                    PlayFile(player, playCommand->fileName);
+                }
+            default:
+                break;
+        }
+    }
+}
+
 int MP3PlayerInit(struct MP3Player* player)
 {
     currentPlayer = player;
@@ -125,19 +156,52 @@ int MP3PlayerInit(struct MP3Player* player)
     mad_decoder_init(&player->decoder, player, MP3DataInput, 0, 0,
                      MP3DataOutput, MP3DataError, 0);
 
+    const osMessageQueueAttr_t queueAttrs = {
+        .name = "MP3CommandQueue",
+        .cb_mem = &player->commandQueueBuffer,
+        .cb_size = sizeof(player->commandQueueBuffer),
+        .mq_mem = player->commandQueueData,
+        .mq_size = sizeof(player->commandQueueData)
+    };
+    player->commandQueue = osMessageQueueNew(3, sizeof (struct MP3Command), &queueAttrs);
+
+    const osThreadAttr_t taskAttrs = {
+        .name = "MP3Player",
+        .stack_mem = player->taskStack,
+        .stack_size = sizeof(player->taskStack),
+        .cb_mem = &player->taskBuffer,
+        .cb_size = sizeof(player->taskBuffer),
+        .priority = osPriorityNormal
+    };
+    player->task = osThreadNew(MP3PlayerTask, player, &taskAttrs);
+
     return 0;
+}
+
+static void PlayFile(struct MP3Player* player, const char* fileName)
+{
+    if (f_open(&player->currentFile, fileName, FA_READ) != FR_OK)
+    {
+        return;
+    }
+
+    mad_decoder_run(&player->decoder, MAD_DECODER_MODE_SYNC);
+    player->codec->StopTransmit(player->codec);
+    player->codec->SetVolume(player->codec, 0);
+
+    return;
 }
 
 int MP3PlayerPlayFile(struct MP3Player* player, const char* fileName)
 {
-    if (f_open(&player->currentFile, fileName, FA_READ) != FR_OK)
-    {
-        return -1;
-    }
+    struct MP3Command command = {
+        .type = MP3_PLAY_FILE
+    };
+    struct MP3FilePlayCommand* playCommand = (struct MP3FilePlayCommand*)&command.data;
 
-    player->codec->Transmit(player->codec, player->codecBuffer, CODEC_BUFFER_SIZE);
-    mad_decoder_run(&player->decoder, MAD_DECODER_MODE_SYNC);
-    player->codec->StopTransmit(player->codec);
+    snprintf(playCommand->fileName, sizeof(playCommand->fileName), "%s", fileName);
 
-    return 0;
+    osMessageQueuePut(player->commandQueue, &command, 0, 0);
+
+    return 1;
 }

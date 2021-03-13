@@ -14,7 +14,7 @@ struct Codec {
     uint16_t* data;
     uint16_t dataLen;
     void (*SetVolume)(struct Codec*, uint8_t);
-    void (*Transmit)(struct Codec*, uint16_t* data, uint16_t len);
+    void (*Transmit)(struct Codec*, uint16_t* data, uint16_t len, unsigned int freq);
     void (*StopTransmit)(struct Codec*);
     void (*Stop)(struct Codec*);
     void (*DataCallback)(struct Codec*, uint16_t* data);

@@ -9,18 +9,33 @@
 #define MP3_FRAME_SIZE 2881
 #define CODEC_BUFFER_SIZE (MP3_BUFFER_SIZE*2)
 
+enum MP3CommandType {
+    MP3_PLAY_FILE
+};
+
+struct MP3Command {
+    enum MP3CommandType type;
+    uint8_t data[100];
+};
+
+struct MP3FilePlayCommand {
+    char fileName[50];
+};
+
 struct MP3Player {
     FIL currentFile;
     struct mad_decoder decoder;
-    int32_t position;
     struct Codec *codec;
     uint8_t fileData[FILE_BUFFER_SIZE];
-    uint8_t* fileReadPtr;
-    int bytesLeft;
-    uint16_t outBuffer[MP3_BUFFER_SIZE];
     uint16_t codecBuffer[CODEC_BUFFER_SIZE];
     uint16_t codecBackBuffer[CODEC_BUFFER_SIZE / 2];
     osThreadId_t task;
+    StaticTask_t taskBuffer;
+    uint32_t taskStack[2048];
+    osMessageQueueId_t commandQueue;
+    StaticQueue_t commandQueueBuffer;
+    uint8_t commandQueueData[sizeof (struct MP3Command) * 3];
+    bool startedPlaying;
 };
 
 int MP3PlayerInit(struct MP3Player* player);
