@@ -8,6 +8,7 @@
 static struct MP3Player* currentPlayer;
 
 static void PlayFile(struct MP3Player* player, const char* fileName);
+static void PlayNextFrame(struct MP3Player* player);
 
 static void MP3DataCallback(struct Codec* codec, uint16_t* data)
 {
@@ -133,17 +134,29 @@ static void MP3PlayerTask(void* arg)
     {
         struct MP3Command command = {0};
 
-        osMessageQueueGet(player->commandQueue, &command, NULL, 0);
+        osStatus_t stat = osMessageQueueGet(player->commandQueue, &command, NULL, 0);
 
-        switch (command.type)
+        if (stat == osOK)
         {
-            case MP3_PLAY_FILE:
-                {
-                    struct MP3FilePlayCommand *playCommand = (struct MP3FilePlayCommand*)&command.data;
-                    PlayFile(player, playCommand->fileName);
-                }
-            default:
-                break;
+            switch (command.type)
+            {
+                case MP3_PLAY_FILE:
+                    {
+                        struct MP3FilePlayCommand *playCommand = (struct MP3FilePlayCommand*)&command.data;
+                        PlayFile(player, playCommand->fileName);
+                    }
+                    break;
+                case MP3_PAUSE:
+                    player->isPlaying = false;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (player->isPlaying)
+        {
+            PlayNextFrame(player);
         }
     }
 }
@@ -178,6 +191,28 @@ int MP3PlayerInit(struct MP3Player* player)
     return 0;
 }
 
+static void PlayNextFrame(struct MP3Player* player)
+{
+    struct mad_stream *stream = &player->decoder.sync->stream;
+    struct mad_frame *frame = &player->decoder.sync->frame;
+    struct mad_synth *synth = &player->decoder.sync->synth;
+
+    if (!MAD_RECOVERABLE(stream->error) && player->decoder.input_func(player->decoder.cb_data, stream) == MAD_FLOW_STOP)
+    {
+        player->isPlaying = false;
+        return;
+    }
+
+    if (mad_frame_decode(frame, stream) == -1)
+    {
+        // bad don't output
+        return;
+    }
+
+    mad_synth_frame(synth, frame);
+    player->decoder.output_func(player->decoder.cb_data, &frame->header, &synth->pcm);
+}
+
 static void PlayFile(struct MP3Player* player, const char* fileName)
 {
     if (f_open(&player->currentFile, fileName, FA_READ) != FR_OK)
@@ -185,9 +220,27 @@ static void PlayFile(struct MP3Player* player, const char* fileName)
         return;
     }
 
-    mad_decoder_run(&player->decoder, MAD_DECODER_MODE_SYNC);
-    player->codec->StopTransmit(player->codec);
-    player->codec->SetVolume(player->codec, 0);
+    if (player->decoder.sync != NULL)
+    {
+        mad_synth_finish(&player->decoder.sync->stream);
+        mad_frame_finish(&player->decoder.sync->frame);
+        mad_stream_finish(&player->decoder.sync->stream);
+        free (player->decoder.sync);
+        player->decoder.sync = NULL;
+    }
+    player->decoder.sync = malloc(sizeof(*player->decoder.sync));
+
+    struct mad_stream *stream = &player->decoder.sync->stream;
+    struct mad_frame *frame = &player->decoder.sync->frame;
+    struct mad_synth *synth = &player->decoder.sync->synth;
+
+    mad_stream_init(stream);
+    mad_frame_init(frame);
+    mad_synth_init(synth);
+
+    mad_stream_options(stream, player->decoder.options);
+
+    player->isPlaying = true;
 
     return;
 }

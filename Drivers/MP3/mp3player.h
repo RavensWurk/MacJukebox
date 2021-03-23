@@ -10,7 +10,8 @@
 #define CODEC_BUFFER_SIZE (MP3_BUFFER_SIZE*2)
 
 enum MP3CommandType {
-    MP3_PLAY_FILE
+    MP3_PLAY_FILE,
+    MP3_PAUSE
 };
 
 struct MP3Command {
@@ -36,6 +37,7 @@ struct MP3Player {
     StaticQueue_t commandQueueBuffer;
     uint8_t commandQueueData[sizeof (struct MP3Command) * 3];
     bool startedPlaying;
+    bool isPlaying;
 };
 
 int MP3PlayerInit(struct MP3Player* player);

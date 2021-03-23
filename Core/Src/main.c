@@ -505,10 +505,14 @@ void StartDefaultTask(void *argument)
   MP3PlayerInit(&player);
   MP3PlayerPlayFile(&player, "song.mp3");
 
+
   /* Infinite loop */
   for(;;)
   {
-      osThreadFlagsWait(2, osFlagsWaitAny, 60000);
+      vTaskDelay(10000);
+      MP3PlayerPlayFile(&player, "song2.mp3");
+      vTaskDelay(10000);
+      MP3PlayerPlayFile(&player, "song.mp3");
   }
   /* USER CODE END 5 */
 }
