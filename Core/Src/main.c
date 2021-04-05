@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "codec.h"
 #include "mp3player.h"
+#include "uart_interface.h"
 
 /* USER CODE END Includes */
 
@@ -475,6 +476,11 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 struct MP3Player player;
 
+void onCommand(struct Command* command)
+{
+    MP3PlayerPlayFile(&player, (const char*)command->data);
+}
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -500,19 +506,17 @@ void StartDefaultTask(void *argument)
 
   f_mount (&USBHFatFS, USBHPath, 1);
 
+  UartInterface_Init(&huart2);
+  UartInterface_OnCommand(onCommand);
+
   player.task = defaultTaskHandle;
   player.codec = &codec;
   MP3PlayerInit(&player);
-  MP3PlayerPlayFile(&player, "song.mp3");
-
 
   /* Infinite loop */
   for(;;)
   {
-      vTaskDelay(10000);
-      MP3PlayerPlayFile(&player, "song2.mp3");
-      vTaskDelay(10000);
-      MP3PlayerPlayFile(&player, "song.mp3");
+      osThreadFlagsWait(1, osFlagsWaitAny, 60000);
   }
   /* USER CODE END 5 */
 }
