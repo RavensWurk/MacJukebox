@@ -30,7 +30,7 @@ enum CommandID {
 struct Command {
     enum CommandID id;
     size_t len;
-    void* data;
+    const void* data;
 };
 
 /**
