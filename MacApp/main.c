@@ -32,21 +32,22 @@ void writeToPort(IOParam *port, const void* data, size_t len) {
 
 void writeCommand(IOParam *port, const struct Command* command) {
     uint8_t startByte = COMMAND_START;
+    uint32_t len = __builtin_bswap32(command->len);
 
     writeToPort(port, &startByte, 1);
     writeToPort(port, &command->id, 1);
-    writeToPort(port, &command->len, 4);
+    writeToPort(port, &len, 4);
     writeToPort(port, command->data, command->len);
 }
 
 int main(int argc, char** argv) {
     IOParam outPort;
-    OpenDriver(".A", &outPort.ioRefNum);
+    OpenDriver("\p.AOut", &outPort.ioRefNum);
 
     CntrlParam cb;
     cb.ioCRefNum = outPort.ioRefNum;
     cb.csCode = 8;
-    cb.csParam[0] = stop10 | noParity | data8 | baud19200;
+    cb.csParam[0] = stop10 | noParity | data8 | baud9600;
     OSErr err = PBControl ((ParmBlkPtr) & cb, 0);
 
     const char* playFile = "song.mp3";
@@ -59,6 +60,10 @@ int main(int argc, char** argv) {
     writeCommand(&outPort, &playCmd);
 
     CloseDriver(outPort.ioRefNum);
+
+    printf("Hello, world.\n");
+    printf("\n(Press Return)\n");
+    getchar();
 
     return 0;
 }
