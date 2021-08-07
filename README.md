@@ -1,4 +1,4 @@
-[[/Images/banner.png|Banner]]
+![Banner](/Images/banner.png)
 This project is an effort to develop a jukebox expansion board for vintage Macintosh computers. 
 It is meant to plug into the standard modem port on all compacts (and later desktops), and provide
 USB storage, audio output via a headphone jack, and a control interface for the computers. 
