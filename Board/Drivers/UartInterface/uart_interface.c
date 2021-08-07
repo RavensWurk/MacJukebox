@@ -48,3 +48,8 @@ void UartInterface_OnCommand(void (*callback)(Command*))
         }
     }
 }
+
+void UartInterface_Write(UART_HandleTypeDef *uart, const void* data, size_t len)
+{
+    HAL_UART_Transmit(uart, (uint8_t*)data, len, 10000);
+}

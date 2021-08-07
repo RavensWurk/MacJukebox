@@ -28,6 +28,8 @@
 #include "codec.h"
 #include "mp3player.h"
 #include "uart_interface.h"
+#include "pb_encode.h"
+#include "parsers/filelist.pb.h"
 
 /* USER CODE END Includes */
 
@@ -83,7 +85,7 @@ static void MX_USART2_UART_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
-
+bool writeListingToUART(pb_ostream_t *stream, const uint8_t *buf, size_t count);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -476,6 +478,49 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 struct MP3Player player;
 
+bool encodeFileListing(pb_ostream_t *ostream, const pb_field_t *field, void * const *arg)
+{
+    const char *targetDir = (const char*)arg;
+    FILINFO info;
+    DIR dir;
+
+    FRESULT result = f_findfirst(&dir, &info, targetDir, "*.mp3");
+
+    while (result == FR_OK && info.fname[0]) {
+        FileListing_File file = {
+            .Size = info.fsize
+        };
+        strcpy(file.Name, info.fname);
+
+        pb_encode_tag_for_field(ostream, field);
+        pb_encode_submessage(ostream, FileListing_File_fields, &file);
+        result = f_findnext(&dir, &info);
+    }
+
+    f_closedir(&dir);
+
+    return true;
+}
+
+void listFiles(void)
+{
+    pb_ostream_t uartStream = {
+        writeListingToUART,
+        NULL,
+        SIZE_MAX,
+        0
+    };
+
+    pb_encode(&uartStream, FileListing_fields, "");
+}
+
+bool writeListingToUART(pb_ostream_t *stream, const uint8_t *buf, size_t count)
+{
+    UartInterface_Write(&huart2, buf, count);
+
+    return true;
+}
+
 void onCommand(Command* command)
 {
     switch (command->id) {
@@ -488,6 +533,7 @@ void onCommand(Command* command)
         case Command_ID_STATUS:
             break;
         case Command_ID_LIST_FILES:
+            listFiles();
             break;
         default:
             break;
