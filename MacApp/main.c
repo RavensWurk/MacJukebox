@@ -57,12 +57,13 @@ int main(int argc, char** argv) {
         .data = playFile
     };
 
-    writeCommand(&outPort, &playCmd);
+    printf("ioRef is: %d, now writing\n", outPort.ioRefNum);
+    //while (true) {
+        writeCommand(&outPort, &playCmd);
+    //}
 
     CloseDriver(outPort.ioRefNum);
 
-    printf("Hello, world.\n");
-    printf("\n(Press Return)\n");
     getchar();
 
     return 0;

@@ -104,9 +104,12 @@ Middlewares/Third_Party/libmad/layer3.c \
 Middlewares/Third_Party/libmad/stream.c \
 Middlewares/Third_Party/libmad/synth.c \
 Middlewares/Third_Party/libmad/timer.c \
+Middlewares/nanopb/pb_common.c \
+Middlewares/nanopb/pb_decode.c \
+Middlewares/nanopb/pb_encode.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
 parsers/commands.c \
-parsers/command.pb-c.c
+parsers/command.pb.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -186,6 +189,7 @@ C_INCLUDES =  \
 -IDrivers/MP3 \
 -IDrivers/UartInterface \
 -IMiddlewares/Third_Party/libmad \
+-IMiddlewares/nanopb/ \
 -I./ \
 -I/usr/include
 
@@ -229,10 +233,10 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
-PROTOBUF_COMMAND = parsers/command.pb-c.c
+PROTOBUF_COMMAND = parsers/command.pb.c
 
 $(PROTOBUF_COMMAND): parsers/command.proto
-	protoc --c_out=. parsers/command.proto
+	nanopb_generator $<
 
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) $(PROTOBUF_COMMAND)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
@@ -258,7 +262,7 @@ $(BUILD_DIR):
 #######################################
 clean:
 	-rm -fR $(BUILD_DIR)
-	-rm parsers/*.pb-c.*
+	-rm -f parsers/*.pb.*
 
 #######################################
 # dependencies

@@ -3,4 +3,4 @@
 
 void UartInterface_Init(UART_HandleTypeDef *uart);
 void UartInterface_Received(uint8_t data);
-void UartInterface_OnCommand(void (*callback)(struct Command*));
+void UartInterface_OnCommand(void (*callback)(Command*));

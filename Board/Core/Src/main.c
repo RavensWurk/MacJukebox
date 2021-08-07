@@ -476,9 +476,9 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 struct MP3Player player;
 
-void onCommand(struct Command* command)
+void onCommand(Command* command)
 {
-    MP3PlayerPlayFile(&player, (const char*)command->data);
+    MP3PlayerPlayFile(&player, (const char*)command->data.bytes);
 }
 
 /* USER CODE END 4 */
