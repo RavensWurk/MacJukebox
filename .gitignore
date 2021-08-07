@@ -1,1 +1,2 @@
-build
+Board/build
+Board/parsers/*.pb-c.*

@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+message Command {
+    enum ID {
+        COMMAND_PLAY_FILE   = 0x00;
+        COMMAND_PAUSE       = 0x01;
+        COMMAND_STATUS      = 0x02;
+        COMMAND_STATUS_RESP = 0x03;
+        COMMAND_LIST_FILES  = 0x04;
+    }
+    required ID id = 1;
+    optional bytes data = 2;
+}

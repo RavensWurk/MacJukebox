@@ -105,7 +105,8 @@ Middlewares/Third_Party/libmad/stream.c \
 Middlewares/Third_Party/libmad/synth.c \
 Middlewares/Third_Party/libmad/timer.c \
 Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c \
-parsers/commands.c
+parsers/commands.c \
+parsers/command.pb-c.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -185,7 +186,8 @@ C_INCLUDES =  \
 -IDrivers/MP3 \
 -IDrivers/UartInterface \
 -IMiddlewares/Third_Party/libmad \
--I./
+-I./ \
+-I/usr/include
 
 
 # compile gcc flags
@@ -227,7 +229,12 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
-$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR)
+PROTOBUF_COMMAND = parsers/command.pb-c.c
+
+$(PROTOBUF_COMMAND): parsers/command.proto
+	protoc --c_out=. parsers/command.proto
+
+$(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) $(PROTOBUF_COMMAND)
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR)
@@ -251,6 +258,7 @@ $(BUILD_DIR):
 #######################################
 clean:
 	-rm -fR $(BUILD_DIR)
+	-rm parsers/*.pb-c.*
 
 #######################################
 # dependencies

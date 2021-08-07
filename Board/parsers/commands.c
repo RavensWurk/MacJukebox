@@ -1,4 +1,5 @@
 #include "parsers/commands.h"
+#include "command.pb-c.h"
 #include <string.h>
 
 bool Command_search(void* data, size_t len, struct Command *command)
