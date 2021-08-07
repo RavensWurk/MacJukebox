@@ -43,3 +43,4 @@ struct MP3Player {
 int MP3PlayerInit(struct MP3Player* player);
 int MP3PlayerPlayFile(struct MP3Player* player, const char* fileName);
 void MP3PlayerTick (struct MP3Player* player);
+void MP3PlayerPause(struct MP3Player* player);

@@ -1,3 +1,13 @@
 Board/build
 Board/parsers/*.pb.*
 *.o
+*.d
+*.finf
+*.bin
+*.hex
+*.APPL
+*.ad
+*.dsk
+*.gdb
+*.elf
+*.map

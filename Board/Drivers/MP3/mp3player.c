@@ -245,6 +245,15 @@ static void PlayFile(struct MP3Player* player, const char* fileName)
     return;
 }
 
+void MP3PlayerPause(struct MP3Player* player)
+{
+    struct MP3Command command = {
+        .type = MP3_PAUSE
+    };
+
+    osMessageQueuePut(player->commandQueue, &command, 0, 0);
+}
+
 int MP3PlayerPlayFile(struct MP3Player* player, const char* fileName)
 {
     struct MP3Command command = {

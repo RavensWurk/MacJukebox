@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+message FileListing {
+    message File {
+        required string Name = 1;
+        required int32 Size = 2;
+    }
+    repeated File files = 1;
+}

@@ -478,7 +478,20 @@ struct MP3Player player;
 
 void onCommand(Command* command)
 {
-    MP3PlayerPlayFile(&player, (const char*)command->data.bytes);
+    switch (command->id) {
+        case Command_ID_PLAY_FILE:
+            MP3PlayerPlayFile(&player, (const char*)command->data.bytes);
+            break;
+        case Command_ID_PAUSE:
+            MP3PlayerPause(&player);
+            break;
+        case Command_ID_STATUS:
+            break;
+        case Command_ID_LIST_FILES:
+            break;
+        default:
+            break;
+    }
 }
 
 /* USER CODE END 4 */
