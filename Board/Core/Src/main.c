@@ -480,10 +480,10 @@ struct MP3Player player;
 
 bool encodeFileListing(pb_ostream_t *ostream, const pb_field_t *field, void * const *arg)
 {
-    const char *targetDir = (const char*)arg;
+    const char *targetDir = (const char*)*arg;
+
     FILINFO info;
     DIR dir;
-
     FRESULT result = f_findfirst(&dir, &info, targetDir, "*.mp3");
 
     while (result == FR_OK && info.fname[0]) {
@@ -511,7 +511,10 @@ void listFiles(void)
         0
     };
 
-    pb_encode(&uartStream, FileListing_fields, "");
+    FileListing listing = FileListing_init_zero;
+    listing.files.funcs.encode = encodeFileListing;
+    listing.files.arg = "/";
+    pb_encode(&uartStream, FileListing_fields, &listing);
 }
 
 bool writeListingToUART(pb_ostream_t *stream, const uint8_t *buf, size_t count)
@@ -533,7 +536,7 @@ void onCommand(Command* command)
         case Command_ID_STATUS:
             break;
         case Command_ID_LIST_FILES:
-            listFiles();
+            osThreadFlagsSet (defaultTaskHandle, 2);
             break;
         default:
             break;
@@ -575,7 +578,12 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-      osThreadFlagsWait(1, osFlagsWaitAny, 60000);
+      uint32_t flags = osThreadFlagsWait(2, osFlagsWaitAny, 60000);
+
+      if (flags == 2)
+      {
+          listFiles();
+      }
   }
   /* USER CODE END 5 */
 }

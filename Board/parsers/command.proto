@@ -9,5 +9,5 @@ message Command {
         LIST_FILES  = 0x04;
     }
     required ID id = 1;
-    optional bytes data = 2;
+    required bytes data = 2;
 }
