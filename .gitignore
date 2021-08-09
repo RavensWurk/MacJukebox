@@ -11,3 +11,5 @@ Board/parsers/*.pb.*
 *.gdb
 *.elf
 *.map
+*.bck
+*-cache.lib
