@@ -1676,9 +1676,6 @@ F 3 "" H 2200 7150 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	950  7300 1350 7300
-Connection ~ 1350 7300
-Wire Wire Line
 	1350 7300 1800 7300
 Wire Wire Line
 	950  7000 1350 7000
@@ -1691,8 +1688,6 @@ Wire Wire Line
 	2000 6950 2200 6950
 Wire Wire Line
 	2200 6950 2200 7150
-Wire Wire Line
-	2000 7300 2200 7300
 Wire Wire Line
 	2200 7300 2200 7150
 Connection ~ 2200 7150
@@ -1945,4 +1940,22 @@ F 3 "~" H 10650 2850 50  0001 C CNN
 	1    10650 2850
 	-1   0    0    1   
 $EndComp
+$Comp
+L Device:R_Small R12
+U 1 1 61161A17
+P 1150 7300
+F 0 "R12" V 954 7300 50  0000 C CNN
+F 1 "1.1K" V 1045 7300 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 1150 7300 50  0001 C CNN
+F 3 "~" H 1150 7300 50  0001 C CNN
+	1    1150 7300
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	2200 7300 2000 7300
+Wire Wire Line
+	1350 7300 1250 7300
+Connection ~ 1350 7300
+Wire Wire Line
+	1050 7300 950  7300
 $EndSCHEMATC
