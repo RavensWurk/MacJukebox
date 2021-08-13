@@ -17,12 +17,31 @@
      along with Retro68.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <Quickdraw.h>
+#include <Dialogs.h>
+#include <Fonts.h>
+#include <Resources.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 #include <Devices.h>
 #include <Serial.h>
 #include <parsers/commands.h>
+
+static Rect initialWindowRect, nextWindowRect;
+
+enum
+{
+    kMenuApple = 128,
+    kMenuFile,
+    kMenuEdit
+};
+
+enum
+{
+    kItemAbout = 1,
+    kItemQuit = 1
+};
 
 void writeToPort(IOParam *port, const void* data, size_t len) {
     port->ioBuffer = (void*)data;
@@ -31,13 +50,67 @@ void writeToPort(IOParam *port, const void* data, size_t len) {
 }
 
 void writeCommand(IOParam *port, const struct Command* command) {
-    uint8_t startByte = COMMAND_START;
-    uint32_t len = __builtin_bswap32(command->len);
+}
 
-    writeToPort(port, &startByte, 1);
-    writeToPort(port, &command->id, 1);
-    writeToPort(port, &len, 4);
-    writeToPort(port, command->data, command->len);
+void ShowAboutBox()
+{
+    WindowRef w = GetNewWindow(129, NULL, (WindowPtr) - 1);
+    MoveWindow(w,
+        qd.screenBits.bounds.right/2 - w->portRect.right/2,
+        qd.screenBits.bounds.bottom/2 - w->portRect.bottom/2,
+        false);
+    ShowWindow(w);
+    SetPort(w);
+
+    Handle h = GetResource('TEXT', 128);
+    HLock(h);
+    Rect r = w->portRect;
+    InsetRect(&r, 10,10);
+    TETextBox(*h, GetHandleSize(h), &r, teJustLeft);
+
+    ReleaseResource(h);
+    while(!Button())
+        ;
+    while(Button())
+        ;
+    FlushEvents(everyEvent, 0);
+    DisposeWindow(w);
+}
+
+
+void DoMenuCommand(long menuCommand)
+{
+    Str255 str;
+    WindowRef w;
+    short menuID = menuCommand >> 16;
+    short menuItem = menuCommand & 0xFFFF;
+    if(menuID == kMenuApple)
+    {
+        if(menuItem == kItemAbout)
+            ShowAboutBox();
+        else
+        {
+            GetMenuItemText(GetMenu(128), menuItem, str);
+            OpenDeskAcc(str);
+        }
+    }
+    else if(menuID == kMenuFile)
+    {
+        switch(menuItem)
+        {
+            case kItemQuit:
+                ExitToShell();
+                break;
+        }
+    }
+
+    HiliteMenu(0);
+}
+
+void Update(WindowRef w) {
+    SetPort(w);
+    BeginUpdate(w);
+    EndUpdate(w);
 }
 
 int main(int argc, char** argv) {
@@ -50,21 +123,75 @@ int main(int argc, char** argv) {
     cb.csParam[0] = stop10 | noParity | data8 | baud9600;
     OSErr err = PBControl ((ParmBlkPtr) & cb, 0);
 
-    const char* playFile = "song.mp3";
-    struct Command playCmd = {
-        .id = COMMAND_PLAY_FILE,
-        .len = strlen(playFile),
-        .data = playFile
-    };
-
-    printf("ioRef is: %d, now writing\n", outPort.ioRefNum);
-    //while (true) {
-        writeCommand(&outPort, &playCmd);
-    //}
-
     CloseDriver(outPort.ioRefNum);
 
-    getchar();
+    InitGraf(&qd.thePort);
+    InitFonts();
+    InitWindows();
+    InitMenus();
+    TEInit();
+    InitDialogs(NULL);
+
+    SetMenuBar(GetNewMBar(128));
+    AppendResMenu(GetMenu(128), 'DRVR');
+    DrawMenuBar();
+
+    InitCursor();
+
+    Rect r;
+    SetRect(&initialWindowRect,20,60,400,260);
+    nextWindowRect = initialWindowRect;
+
+    WindowRef w = GetNewWindow(128, NULL, (WindowPtr) - 1);
+    MoveWindow(w,
+        qd.screenBits.bounds.right/2 - w->portRect.right/2,
+        qd.screenBits.bounds.bottom/2 - w->portRect.bottom/2,
+        false);
+    ShowWindow(w);
+    SetPort(w);
+
+    while(true) {
+        EventRecord e;
+        WindowRef win;
+
+        SystemTask();
+        if(GetNextEvent(everyEvent, &e))
+        {
+            switch(e.what)
+            {
+                case keyDown:
+                    if(e.modifiers & cmdKey)
+                    {
+                        DoMenuCommand(MenuKey(e.message & charCodeMask));
+                    }
+                    break;
+                case mouseDown:
+                    switch(FindWindow(e.where, &win))
+                    {
+                        case inGoAway:
+                            if(TrackGoAway(win, e.where))
+                                DisposeWindow(win);
+                            break;
+                        case inDrag:
+                            DragWindow(win, e.where, &qd.screenBits.bounds);
+                            break;
+                        case inMenuBar:
+                            DoMenuCommand( MenuSelect(e.where) );
+                            break;
+                        case inContent:
+                            SelectWindow(win);
+                            break;
+                        case inSysWindow:
+                            SystemClick(&e, win);
+                            break;
+                    }
+                    break;
+                case updateEvt:
+                    Update((WindowRef)e.message);
+                    break;
+            }
+        }
+    }
 
     return 0;
 }
