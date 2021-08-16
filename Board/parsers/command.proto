@@ -4,10 +4,20 @@ message Command {
     enum ID {
         PLAY_FILE   = 0x00;
         PAUSE       = 0x01;
-        STATUS      = 0x02;
-        STATUS_RESP = 0x03;
+        FIRMWARE_VERSION = 0x02;
         LIST_FILES  = 0x04;
     }
     required ID id = 1;
     required bytes data = 2;
+}
+
+message BoardStatus {
+    enum ID {
+        FILE_NOT_FOUND = 0x00;
+        FILE_COMPLETE = 0x01;
+        FILE_INVALID = 0x02;
+        FIRMWARE_VERSION = 0x03;
+        FILE_INFO = 0x04;
+    }
+    required ID id = 1;
 }

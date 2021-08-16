@@ -16,7 +16,7 @@ bool CS43L22_Init (struct Codec* codec)
     _WriteReg (codec, 0x05, 0x81);
     _WriteReg (codec, 0x06, 0x04);
 
-    CS43L22_SetVolume (codec, 150);
+    CS43L22_SetVolume (codec, 185);
 
     _WriteReg (codec, 0x02, 0x9E);
     _WriteReg (codec, 0x0A, 0x00);

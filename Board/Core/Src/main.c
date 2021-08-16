@@ -533,8 +533,6 @@ void onCommand(Command* command)
         case Command_ID_PAUSE:
             MP3PlayerPause(&player);
             break;
-        case Command_ID_STATUS:
-            break;
         case Command_ID_LIST_FILES:
             osThreadFlagsSet (defaultTaskHandle, 2);
             break;

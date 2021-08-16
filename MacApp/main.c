@@ -43,15 +43,6 @@ enum
     kItemQuit = 1
 };
 
-void writeToPort(IOParam *port, const void* data, size_t len) {
-    port->ioBuffer = (void*)data;
-    port->ioReqCount = len;
-    PBWrite((ParmBlkPtr)port, 0);
-}
-
-void writeCommand(IOParam *port, const struct Command* command) {
-}
-
 void ShowAboutBox()
 {
     WindowRef w = GetNewWindow(129, NULL, (WindowPtr) - 1);
@@ -138,15 +129,12 @@ int main(int argc, char** argv) {
 
     InitCursor();
 
-    Rect r;
-    SetRect(&initialWindowRect,20,60,400,260);
-    nextWindowRect = initialWindowRect;
-
     WindowRef w = GetNewWindow(128, NULL, (WindowPtr) - 1);
-    MoveWindow(w,
-        qd.screenBits.bounds.right/2 - w->portRect.right/2,
-        qd.screenBits.bounds.bottom/2 - w->portRect.bottom/2,
-        false);
+
+    ControlRef playBtn = GetNewControl(128, w);
+    ControlRef pauseBtn = GetNewControl(129, w);
+    ControlRef skipBtn = GetNewControl(130, w);
+
     ShowWindow(w);
     SetPort(w);
 
@@ -181,9 +169,18 @@ int main(int argc, char** argv) {
                         case inContent:
                             SelectWindow(win);
                             break;
-                        case inSysWindow:
+                        case inSysWindow: {
                             SystemClick(&e, win);
+
+                            Point point = e.where;
+                            GlobalToLocal(&point);
+                            ControlRef cntrl;
+                            if (FindControl(point, win, &cntrl) != 0) {
+                                TrackControl(cntrl, point, NULL);
+                            }
+
                             break;
+                        }
                     }
                     break;
                 case updateEvt:

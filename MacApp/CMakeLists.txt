@@ -9,12 +9,17 @@ cmake_minimum_required(VERSION 3.18)
 
 add_application(MacJukebox
     main.c
+    commands.c
+    serial.c
+    ../Board/Middlewares/nanopb/pb_common.c
+    ../Board/Middlewares/nanopb/pb_encode.c
+    ../Board/parsers/command.pb.c
     mainwindow.r
     topmenus.r
    )
 
 target_include_directories(MacJukebox PRIVATE ../Board/
-    ../Board/Middlewares/nanopb)
+    ../Board/Middlewares/nanopb ../Board/parsers)
 
     # make the result as small as possible
     # by removing unused code (gc-sections)
