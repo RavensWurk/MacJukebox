@@ -2,14 +2,6 @@
 #include "Controls.r"
 #include "MacTypes.r"
 
-resource 'WIND' (128) {
-    {0, 0, 220, 320}, documentProc;
-    visible;
-    noGoAway;
-    0, "";
-    noAutoCenter;
-};
-
 resource 'CNTL' (128) {
     { 275, 17, 295, 75 },
     0,
@@ -40,7 +32,7 @@ resource 'CNTL' (130) {
 resource 'WIND' (128) {
     {0, 0, 300, 400}, documentProc;
     visible;
-    noGoAway;
+    goAway;
     0,
     "MacJukebox",
     centerMainScreen

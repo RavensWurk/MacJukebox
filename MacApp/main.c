@@ -18,7 +18,8 @@
 */
 
 #include <Quickdraw.h>
-#include <Dialogs.h>
+#include <Windows.h>
+#include <Lists.h>
 #include <Fonts.h>
 #include <Resources.h>
 #include <stdio.h>
@@ -26,6 +27,7 @@
 #include <string.h>
 #include <Devices.h>
 #include <Serial.h>
+#include <Sound.h>
 #include <parsers/commands.h>
 
 static Rect initialWindowRect, nextWindowRect;
@@ -105,17 +107,6 @@ void Update(WindowRef w) {
 }
 
 int main(int argc, char** argv) {
-    IOParam outPort;
-    OpenDriver("\p.AOut", &outPort.ioRefNum);
-
-    CntrlParam cb;
-    cb.ioCRefNum = outPort.ioRefNum;
-    cb.csCode = 8;
-    cb.csParam[0] = stop10 | noParity | data8 | baud9600;
-    OSErr err = PBControl ((ParmBlkPtr) & cb, 0);
-
-    CloseDriver(outPort.ioRefNum);
-
     InitGraf(&qd.thePort);
     InitFonts();
     InitWindows();
@@ -127,14 +118,36 @@ int main(int argc, char** argv) {
     AppendResMenu(GetMenu(128), 'DRVR');
     DrawMenuBar();
 
-    InitCursor();
-
     WindowRef w = GetNewWindow(128, NULL, (WindowPtr) - 1);
 
     ControlRef playBtn = GetNewControl(128, w);
     ControlRef pauseBtn = GetNewControl(129, w);
     ControlRef skipBtn = GetNewControl(130, w);
 
+    Rect listRect;
+    Point p;
+    SetRect(&listRect, 0, 0, 3, 0);
+    SetPt(&p, 0, 0);
+
+    Rect boundRect = w->portRect;
+    boundRect.left += 10;
+    boundRect.top += 10;
+    boundRect.right -= 15;
+    boundRect.bottom -= 50;
+
+    ListHandle list = LNew(&boundRect, &listRect, p, 0, w,
+           true, false, true, true);
+
+    (**list).selFlags = 0;
+
+    LAddRow(1, 1, list);
+    SetPt(&p, 0, 0);
+    LSetCell("David Bowie", strlen("David Bowie"), p, list);
+    SetPt(&p, 1, 0);
+    LSetCell("Ziggy", strlen("Ziggy"), p, list);
+    LDraw(p, list);
+
+    InitCursor();
     ShowWindow(w);
     SetPort(w);
 
@@ -168,9 +181,6 @@ int main(int argc, char** argv) {
                             break;
                         case inContent:
                             SelectWindow(win);
-                            break;
-                        case inSysWindow: {
-                            SystemClick(&e, win);
 
                             Point point = e.where;
                             GlobalToLocal(&point);
@@ -180,11 +190,21 @@ int main(int argc, char** argv) {
                             }
 
                             break;
+                        case inSysWindow: {
+                            SystemClick(&e, win);
+                            break;
                         }
                     }
                     break;
                 case updateEvt:
                     Update((WindowRef)e.message);
+
+                    PenState penState;
+                    GetPenState(&penState);
+                    PenSize(1, 1);
+                    InsetRect(&(*list)->rView, -1, -1);
+                    FrameRect(&(*list)->rView);
+                    SetPenState(&penState);
                     break;
             }
         }
