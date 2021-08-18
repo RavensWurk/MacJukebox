@@ -21,8 +21,18 @@ resource 'MENU' (129) {
     }
 };
 
+resource 'MENU' (130) {
+    130, textMenuProc;
+    allEnabled, enabled;
+    "Options";
+    {
+        "Modem Port", noIcon, "", check, plain;
+        "Printer Port", noIcon, "", noMark, plain;
+    }
+};
+
 resource 'MBAR' (128) {
-    { 128, 129 };
+    { 128, 129, 130 };
 };
 
 data 'TEXT' (128) {
