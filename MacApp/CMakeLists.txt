@@ -13,7 +13,9 @@ add_application(MacJukebox
     serial.c
     ../Board/Middlewares/nanopb/pb_common.c
     ../Board/Middlewares/nanopb/pb_encode.c
+    ../Board/Middlewares/nanopb/pb_decode.c
     ../Board/parsers/command.pb.c
+    ../Board/parsers/filelist.pb.c
     mainwindow.r
     topmenus.r
    )

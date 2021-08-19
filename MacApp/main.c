@@ -29,6 +29,9 @@
 #include <Serial.h>
 #include <Sound.h>
 #include <parsers/commands.h>
+#include "serial.h"
+#include "commands.h"
+#include "filelist.pb.h"
 
 static Rect initialWindowRect, nextWindowRect;
 
@@ -130,6 +133,10 @@ void UpdateList(ListHandle list) {
     SetPenState(&penState);
 }
 
+void FileListCallback(FileListing_File *file, void* arg) {
+    ListHandle list = (ListHandle)arg;
+}
+
 int main(int argc, char** argv) {
     InitGraf(&qd.thePort);
     InitFonts();
@@ -163,6 +170,10 @@ int main(int argc, char** argv) {
            true, false, true, true);
 
     (**list).selFlags = 0;
+
+    IOParam param = {0};
+    SerialInit("\p.AOut", &param);
+    ListFiles(&param, FileListCallback, &list);
 
     LAddRow(1, 1, list);
     SetPt(&p, 0, 0);

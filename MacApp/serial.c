@@ -5,7 +5,15 @@
 void writeToPort(IOParam *port, const void* data, size_t len) {
     port->ioBuffer = (void*)data;
     port->ioReqCount = len;
-    PBWrite((ParmBlkPtr)port, 0);
+    PBWrite((ParmBlkPtr)port, false);
+}
+
+size_t readFromPort(IOParam *port, const void* data, size_t len) {
+    port->ioBuffer = (void*)data;
+    port->ioReqCount = len;
+    PBRead((ParmBlkPtr)port, false);
+
+    return port->ioActCount;
 }
 
 OSErr SerialInit(ConstStr255Param port, IOParam* param) {
